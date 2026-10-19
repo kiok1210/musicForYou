@@ -1,0 +1,246 @@
+/* ── 舞台槽位：唱片与歌词共用同一块空间 ─────────────── */
+
+.stage-slot {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* 视图切换按钮 */
+.stage-toggle {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(14, 14, 18, 0.82);
+  color: var(--text-dim);
+  backdrop-filter: blur(8px);
+  transition: color 0.16s, background 0.16s, border-color 0.16s;
+}
+
+.stage-toggle:hover {
+  color: var(--gold);
+  border-color: var(--gold-line);
+  background: rgba(20, 20, 26, 0.95);
+}
+
+/* ── 歌词面板 ───────────────────────────────────────── */
+
+.lyrics-view {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.008));
+  overflow: hidden;
+  animation: lyrics-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes lyrics-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+.lyrics-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* 上下渐隐，让歌词像浮在空气里 */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    #000 46px,
+    #000 calc(100% - 46px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0,
+    #000 46px,
+    #000 calc(100% - 46px),
+    transparent 100%
+  );
+  scrollbar-width: none;
+}
+
+.lyrics-scroll::-webkit-scrollbar {
+  width: 0;
+}
+
+.lyrics-inner {
+  padding: 56px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.lyric-row {
+  text-align: center;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0.34;
+}
+
+.lyric-row[data-past='true'] {
+  opacity: 0.22;
+}
+
+.lyric-row[data-active='true'] {
+  opacity: 1;
+  transform: scale(1.035);
+}
+
+.lyric-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  transition: color 0.3s ease;
+}
+
+.lyric-row[data-active='true'] .lyric-text {
+  color: var(--gold-bright);
+  font-weight: 600;
+  text-shadow: 0 0 22px rgba(224, 178, 92, 0.35);
+}
+
+.lyric-translation {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  transition: color 0.3s ease;
+}
+
+.lyric-row[data-active='true'] .lyric-translation {
+  color: rgba(242, 205, 133, 0.78);
+}
+
+/* 无歌词 / 加载中 */
+.lyrics-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 24px;
+  color: var(--text-mute);
+  text-align: center;
+  font-size: 12.5px;
+}
+
+.lyrics-hint {
+  max-width: 250px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--text-mute);
+}
+
+.lyrics-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.transcribe-progress {
+  width: 72%;
+  height: 3px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+}
+
+.transcribe-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  transition: width 0.3s ease;
+}
+
+.lyrics-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 16px;
+  border-top: 1px solid var(--line);
+  background: rgba(8, 8, 11, 0.42);
+}
+
+.lyrics-source {
+  flex: 1;
+  min-width: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lyrics-footer .icon-btn {
+  width: 26px;
+  height: 26px;
+}
+
+/* ── 唱片视图下的当前歌词预览 ───────────────────────── */
+
+.lyric-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px dashed transparent;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.lyric-preview:hover {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.lyric-preview-text {
+  max-width: 100%;
+  font-size: 12.5px;
+  color: var(--gold-bright);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 0.4s ease;
+}
+
+.lyric-preview-trans {
+  max-width: 100%;
+  font-size: 11px;
+  color: var(--text-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lyric-preview-empty {
+  font-size: 11.5px;
+  color: var(--text-mute);
+}

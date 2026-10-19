@@ -1,0 +1,42 @@
+appId: com.musicforyou.vinylbox
+productName: VinylBox
+directories:
+  buildResources: build
+  output: release
+files:
+  - out/**/*
+  - package.json
+extraResources:
+  - from: resources/bin
+    to: bin
+    filter:
+      - '**/*'
+win:
+  # 安装版、绿色版压缩包、单文件免安装版，一次产出三种形态
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-win-${arch}.${ext}
+nsis:
+  artifactName: ${productName}-${version}-win-${arch}-setup.${ext}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: VinylBox
+  # 卸载时询问是否连用户数据一起删（见 build/installer.nsh）。
+  # 不用 deleteAppDataOnUninstall: true —— 那会无差别删掉缓存的歌曲，
+  # 而这里的数据目录实测有 1GB 以上。
+  include: build/installer.nsh
+portable:
+  artifactName: ${productName}-${version}-win-${arch}-portable.${ext}
+  # 说明：单文件便携版每次启动都要把整个应用自解压到 %TEMP% 再运行，
+  # 实测冷启动 13s+（解压 + 杀软扫描），unpackDirName 也无法跳过重复解压。
+  # 日常使用请用 zip 绿色版（解压一次，之后启动 < 1s）。

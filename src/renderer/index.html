@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      这里放开 http: 是有意的：手机端要连电脑上局域网里的配套服务
+      （形如 http://192.168.1.5:8787），而 CSP 只能按域名放行、不支持按 IP 段，
+      于是整类放行。桌面端连的是本机，放开后也不会真的用到。
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: http: https: media:; media-src 'self' media: blob: http:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' ws: http: https:"
+    />
+    <title>VinylBox · 黑胶缓存播放器</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
