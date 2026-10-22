@@ -49,7 +49,10 @@ jobs:
       - run: npm run build
 
       - name: 打包（安装版 / 免安装版 / 绿色压缩包）
-        run: npx electron-builder --win --x64
+        # --publish never 是必须的：CI 环境下 electron-builder 会自动尝试发布，
+        # 当前没有 GH_TOKEN 就直接报错退出（产物其实已经打好，最后一步才失败）。
+        # 上传统一交给下一步的 action-gh-release。
+        run: npx electron-builder --win --x64 --publish never
         env:
           # CI 里没有代码签名证书，显式关掉以免失败
           CSC_IDENTITY_AUTO_DISCOVERY: false
