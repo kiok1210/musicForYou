@@ -1,0 +1,69 @@
+name: Build Windows Release
+
+# 推送 v* 标签时自动构建并上传安装包；也可以手动触发并指定标签。
+#
+# 为什么放在 CI 而不是本地打：
+#   1. Release 附件上传走 objects.githubusercontent.com，该域名在国内直连不通，
+#      只能经代理，上行很慢（实测 124MB 传了十分钟没完成）。
+#   2. resources/bin 里的 yt-dlp / ffmpeg 因体积太大不进版本库，
+#      CI 在 GitHub 网络上补这两份文件是秒级的。
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要发布的标签（需已存在）'
+        required: true
+        default: 'v0.6.1'
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 补齐内置组件（不打进仓库，这里现场下载）
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path resources/bin -Force | Out-Null
+          Invoke-WebRequest -Uri 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe' -OutFile resources/bin/yt-dlp.exe
+          Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile ffmpeg.zip
+          Expand-Archive -Path ffmpeg.zip -DestinationPath ffmpeg-tmp -Force
+          $ff = Get-ChildItem ffmpeg-tmp -Recurse -Filter ffmpeg.exe | Select-Object -First 1
+          Copy-Item $ff.FullName resources/bin/ffmpeg.exe
+          Write-Host "yt-dlp: $(& resources/bin/yt-dlp.exe --version)"
+          Write-Host "ffmpeg: $(& resources/bin/ffmpeg.exe -version | Select-Object -First 1)"
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: 打包（安装版 / 免安装版 / 绿色压缩包）
+        run: npx electron-builder --win --x64
+        env:
+          # CI 里没有代码签名证书，显式关掉以免失败
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: 上传到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          # 已有的 Release 直接补附件，不覆盖手写的发布说明
+          draft: false
+          fail_on_unmatched_files: false
+          files: |
+            release/VinylBox-*-win-x64-setup.exe
+            release/VinylBox-*-win-x64-portable.exe
+            release/VinylBox-*-win-x64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
